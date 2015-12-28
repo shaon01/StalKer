@@ -9,11 +9,16 @@ Encoder leftEnc(3, 6);   //reading left motor encoder pin  LA-->3,LB-->6
 
 bool received = false;
 
-float v_max = 1.0;  //in mm/ms
+float v_max = 1.0;  //maximum speed of robot in mm/ms   1.5mm/ms->200(pwm)
 float a_max = 0.01; //in mm/ms2
-int dt = 10;
+int dt = 10;  //sampling time
 
-float runRobot(int sped){  /// to run the robot call this function
+//////////****************************///////////////
+//Basic motor driving function
+///////////////**********************///////////
+
+
+float runRobot(int sped){  /// to run the robot forward call this function
   
   Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
   Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
@@ -39,6 +44,21 @@ float runRobot(int sped){  /// to run the robot call this function
   
   }
 
+
+void stopRobot(){  //to stop the robot call dis funcion
+  
+    Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);
+    Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);
+
+    leftWheel -> run(RELEASE);     
+    rightWheel -> run(RELEASE);
+    
+  
+  }
+  
+//////********************************////////
+//Robot driving forward with trapizoidal velocity profile function and trun left and right
+///////////***********************///////////////
 void goForward(int distance){  //get distance in cm 
   
   float p_goal = distance*10; //convert distance to mm
@@ -83,16 +103,7 @@ void goForward(int distance){  //get distance in cm
   
   }
 
-void stopRobot(){
-  
-    Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);
-    Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);
 
-    leftWheel -> run(RELEASE);     
-    rightWheel -> run(RELEASE);
-    
-  
-  }
 
 void goBackward(float sped){
   //this line will just for git.
@@ -179,6 +190,11 @@ void setup() {
   AFMS.begin();
 
 }
+///////////**********//////////
+//main function statrs here implement I2C or seril handling here. get insturction from serila 
+//or i2c and exicute them
+///////////*******************////////////
+
 
 void loop(){
 
@@ -210,12 +226,12 @@ void loop(){
       
       }
 
-    if(msg[0] == 'l'){
+    if(msg[0] == 'l'){  //turn left by calling function with direction and angle
       
       turnRobot(msg[1],msg[0]);
       
       }
-    if(msg[0] == 'r'){
+    if(msg[0] == 'r'){   //trun right by calling function with direction and angle
       
       turnRobot(msg[1],msg[0]);
       
