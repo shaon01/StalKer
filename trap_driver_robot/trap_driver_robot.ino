@@ -78,6 +78,8 @@ void goForward(int distance){  //get distance in cm
     //stop motor after reaching the position
     stopRobot();
     
+    
+    
   
   }
 
@@ -99,8 +101,11 @@ void goBackward(float sped){
 
 void turnRobot(int dgre, char dir){
   
-///for right turning
+  long oldLenc =leftEnc.read();
+  long oldRenc = rightEnc.read();
+  
   float diff = (dgre*240*0.0174533); /// calculate the difference in wheel we need diff = dgree*wheelbase/encoder distance == degree*convert to radian*240mm/0.5mm*
+  
   
   
   Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motorw
@@ -130,11 +135,39 @@ void turnRobot(int dgre, char dir){
     newLenc = leftEnc.read();
     newRenc = rightEnc.read();
 
-    curr_diff = abs(abs(newLenc) + abs(newRenc))/2;
+    curr_diff = (abs(abs(abs(newLenc)-abs(oldLenc)) + abs(abs(newRenc)-abs(oldRenc))));
+    /*
+    Serial.print("diff :");
+    Serial.println(diff);
+    Serial.print("curr_diff :");
+    Serial.println(curr_diff);
+    
+    Serial.println("**************");
+    
+    Serial.print("old left :");
+    Serial.print(oldLenc);
+    Serial.print("\t");
+    Serial.print("old right :");
+    Serial.println(oldRenc);
+    
+    Serial.print("new left :");
+    Serial.print(newLenc);
+    Serial.print("\t");
+    Serial.print("new right :");
+    Serial.println(newRenc);
+
+    Serial.print("diff left :");
+    Serial.print(abs(abs(newLenc)-abs(oldLenc)));
+    Serial.print("\t");
+    Serial.print("diff right :");
+    Serial.println(abs(abs(newRenc)-abs(oldRenc)));
+    Serial.println("*****************");
+    */
     
     
     }
     stopRobot();
+   
   
   }
 
@@ -151,6 +184,7 @@ void loop(){
 
   byte msg[10];  //massage storing variable;
   int count = 0;
+  
   while (Serial.available() > 0) {
 
     byte inByte = (byte)Serial.read(); //reading serial
@@ -161,10 +195,11 @@ void loop(){
   }
 
   if(received){
-
+    
+    
     if(msg[0] == 'f'){
       goForward(msg[1]);
-    
+        
     }
 
     if (msg[0] == 's'){
