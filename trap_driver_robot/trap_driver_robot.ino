@@ -92,8 +92,50 @@ void stopRobot(){
   
   }
 
-void goBackward(sped){
+void goBackward(float sped){
   //this line will just for git.
+  }
+
+
+void turnRobot(int dgre, char dir){
+  
+///for right turning
+  float diff = (dgre*240*0.0174533); /// calculate the difference in wheel we need diff = dgree*wheelbase/encoder distance == degree*convert to radian*240mm/0.5mm*
+  
+  
+  Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motorw
+  Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
+
+  rightWheel -> setSpeed(50);
+  leftWheel -> setSpeed(50);
+
+  if (dir == 'r'){
+  
+  leftWheel -> run(FORWARD);
+  rightWheel -> run(BACKWARD);
+  }
+  else if(dir== 'l'){
+    leftWheel -> run(BACKWARD);
+    rightWheel -> run(FORWARD);
+  }
+    
+    
+
+  float curr_diff = 0;
+  long newLenc,newRenc;
+  
+  
+  while(curr_diff <= diff){
+
+    newLenc = leftEnc.read();
+    newRenc = rightEnc.read();
+
+    curr_diff = abs(abs(newLenc) + abs(newRenc))/2;
+    
+    
+    }
+    stopRobot();
+  
   }
 
 void setup() {
@@ -132,10 +174,22 @@ void loop(){
   
       
       }
+
+    if(msg[0] == 'l'){
+      
+      turnRobot(msg[1],msg[0]);
+      
+      }
+    if(msg[0] == 'r'){
+      
+      turnRobot(msg[1],msg[0]);
+      
+      }
   }
 
       received =false;
       delay(10);
+      Serial.flush();
 
     
   
