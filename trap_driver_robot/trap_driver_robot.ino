@@ -18,7 +18,7 @@ int dt = 10;  //sampling time
 ///////////////**********************///////////
 
 
-float runRobot(int sped){  /// to run the robot forward call this function
+float goForward(int sped){  /// to run the robot forward call this function
   
   Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
   Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
@@ -38,12 +38,40 @@ float runRobot(int sped){  /// to run the robot forward call this function
   long newrightEnc = rightEnc.read();
 
   //taking the average of two wheel encoder and then convert to distance in mm ; 1 tick = 0.5mm
-  float dist = ((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/4;
+  float dist = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.4;
 
   return dist;
   
   }
 
+
+float goBackward(float sped){
+
+  Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
+  Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
+
+  long oldleftEnc = leftEnc.read();     //reading encoders
+  long oldrightEnc = rightEnc.read();
+
+  rightWheel -> setSpeed(sped);
+  leftWheel -> setSpeed(sped);
+  
+  leftWheel -> run(BACKWARD);
+  rightWheel -> run(BACKWARD);
+
+  delay(dt);    //10ms is the dt
+
+  long newleftEnc = leftEnc.read();     //reading encoders
+  long newrightEnc = rightEnc.read();
+
+  //taking the average of two wheel encoder and then convert to distance in mm ; 1 tick = 0.5mm
+  float dist = abs(abs(abs(newrightEnc) - abs(oldrightEnc)) + abs(abs(newleftEnc) - abs(oldleftEnc)))/4;
+
+  return dist;
+  
+
+
+  }
 
 void stopRobot(){  //to stop the robot call dis funcion
   
@@ -59,7 +87,7 @@ void stopRobot(){  //to stop the robot call dis funcion
 //////********************************////////
 //Robot driving forward with trapizoidal velocity profile function and trun left and right
 ///////////***********************///////////////
-void goForward(int distance){  //get distance in cm 
+void moveRobot(char head, int distance){  //get distance in cm 
   
   float p_goal = distance*10; //convert distance to mm
   float traveled = 0;
@@ -78,7 +106,12 @@ void goForward(int distance){  //get distance in cm
       
       // 1.5mm/ms speed for pwm 200, so coverstion is (200/1.5)*v_curr
       int spedd = 133*v_curr;
-      diff = runRobot(spedd); // run the robot at calculated speed
+      if (head == 'f'){
+        diff = goForward(spedd); // run the robot at calculated speed
+      }
+      else if(head =='b'){
+      diff = goBackward(spedd);
+      }
       
       }
 
@@ -87,8 +120,13 @@ void goForward(int distance){  //get distance in cm
       v_curr  = v_curr - a_max*dt;
 
       int spedd = 133*v_curr;
-      diff = runRobot(spedd); // run the robot 
-
+      
+      if (head == 'f'){
+        diff = goForward(spedd); // run the robot at calculated speed
+      }
+      else if(head =='b'){
+         diff = goBackward(spedd);
+      }
       
       } 
 
@@ -101,12 +139,6 @@ void goForward(int distance){  //get distance in cm
     
     
   
-  }
-
-
-
-void goBackward(float sped){
-  //this line will just for git.
   }
 
 
@@ -213,12 +245,17 @@ void loop(){
   if(received){
     
     
-    if(msg[0] == 'f'){
-      goForward(msg[1]);
+    if(msg[0] == 'f'){   //go forward
+      moveRobot(msg[0],msg[1]);
         
     }
 
-    if (msg[0] == 's'){
+    if(msg[0] == 'b'){  //go backward
+      moveRobot(msg[0],msg[1]);
+        
+    }
+
+    if (msg[0] == 's'){  //stop robot
 
       stopRobot();
       Serial.println("its stopped");
