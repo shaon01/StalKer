@@ -18,66 +18,28 @@ int dt = 10;  //sampling time
 ///////////////**********************///////////
 
 
-float goForward(int sped){  /// to run the robot forward call this function
+void goForward(int sped, char hed){  /// to run the robot forward call this function
   
   Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
   Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
 
-  long oldleftEnc = leftEnc.read();     //reading encoders
-  long oldrightEnc = rightEnc.read();
-
   rightWheel -> setSpeed(sped);
   leftWheel -> setSpeed(sped);
-  
-  leftWheel -> run(FORWARD);
-  rightWheel -> run(FORWARD);
+
+  if (hed == 'f'){        //for forward movement
+    leftWheel -> run(FORWARD);
+    rightWheel -> run(FORWARD);
+  }
+  if (hed == 'b'){             //for backward movement
+    leftWheel -> run(BACKWARD);
+    rightWheel -> run(BACKWARD);
+  }
 
   delay(dt);    //20ms is the dt
-
-  long newleftEnc = leftEnc.read();     //reading encoders
-  long newrightEnc = rightEnc.read();
-
-  //taking the average of two wheel encoder and then convert to distance in mm ; 1 tick = 0.5mm
-  float dist = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.5;
-  Serial.print("old left encoder :");Serial.print(oldleftEnc);Serial.print("\t");Serial.print("old right encoder :");Serial.println(oldrightEnc);
-  Serial.print("new left encoder :");Serial.print(newleftEnc);Serial.print("\t");Serial.print("new right encoder :");Serial.println(newrightEnc);
-  
-  Serial.print("left differnce  :");Serial.print((newleftEnc - oldleftEnc));Serial.print("\t");Serial.print("left differnce  :");Serial.println((newrightEnc - oldrightEnc));
-  Serial.println("--------------");
-  Serial.print("total diffrance : ");Serial.println(dist);
-  Serial.println("--------------");
-  return dist;
   
   }
 
 
-float goBackward(float sped){
-
-  Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
-  Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
-
-  long oldleftEnc = leftEnc.read();     //reading encoders
-  long oldrightEnc = rightEnc.read();
-
-  rightWheel -> setSpeed(sped);
-  leftWheel -> setSpeed(sped);
-  
-  leftWheel -> run(BACKWARD);
-  rightWheel -> run(BACKWARD);
-
-  delay(dt);    //10ms is the dt
-
-  long newleftEnc = leftEnc.read();     //reading encoders
-  long newrightEnc = rightEnc.read();
-
-  //taking the average of two wheel encoder and then convert to distance in mm ; 1 tick = 0.5mm
-  float dist = abs(abs(abs(newrightEnc) - abs(oldrightEnc)) + abs(abs(newleftEnc) - abs(oldleftEnc)))/4;
-
-  return dist;
-  
-
-
-  }
 
 void stopRobot(){  //to stop the robot call dis funcion
   
@@ -93,6 +55,8 @@ void stopRobot(){  //to stop the robot call dis funcion
 //////********************************////////
 //Robot driving forward with trapizoidal velocity profile function and trun left and right
 ///////////***********************///////////////
+
+
 void moveRobot(char head, int distance){  //get distance in cm 
   
   float p_goal = distance*10; //convert distance to mm
@@ -102,45 +66,64 @@ void moveRobot(char head, int distance){  //get distance in cm
   float toGo = p_goal;
   float diff ;
 
+  long oldleftEnc = leftEnc.read();     //reading encoders
+  long oldrightEnc = rightEnc.read();
+
    while((p_goal - traveled)>0){
 
-    dp_min = (v_curr*v_curr)/a_max;  //critical distance to strat breaking
-    toGo = p_goal - traveled;  // how far to go
+    dp_min = (0.5*v_curr*v_curr)/a_max;  //critical distance to strat breaking
+    toGo = p_goal - traveled;            // how far to go
  
-    if(dp_min<toGo){
-      v_curr = min(v_max, v_curr+a_max*(dt-2)); //take the minimum of 
+    if(dp_min<toGo){   //increase speed
       
-      // 1.5mm/ms speed for pwm 200, so coverstion is (200/1.5)*v_curr
-      int spedd = 133*v_curr;
-      if (head == 'f'){
-        diff = goForward(spedd); // run the robot at calculated speed
-      }
-      else if(head =='b'){
-      diff = goBackward(spedd);
-      }
+      v_curr = min(v_max, v_curr+a_max*(dt-2));   //take the minimum of so it does not exceed max speed 
+            
+      int spedd = 133*v_curr;     // 1.5mm/ms speed for pwm 200, so coverstion is (200/1.5)*v_curr
+      
+      goForward(spedd, head); // run the robot at calculated speed and heading
+      
       
       }
 
     else{
 
-      v_curr  = v_curr - a_max*(dt-2);
+      v_curr  = max(0, v_curr - a_max*(dt));
 
       int spedd = 133*v_curr;
       
-      if (head == 'f'){
-        diff = goForward(spedd); // run the robot at calculated speed
-      }
-      else if(head =='b'){
-         diff = goBackward(spedd);
-      }
+      goForward(spedd, head); // run the robot at calculated speed
+      
       
       } 
+     long newleftEnc = leftEnc.read();     //reading encoders
+     long newrightEnc = rightEnc.read();
 
-    traveled = traveled + diff;
+     //convert average of encoder to mm. 1 tick = 0.25mm
+
+     if (head == 'f'){
+        traveled = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.25;
+     }
+     else {
+        traveled = abs(abs(abs(newrightEnc) - abs(oldrightEnc)) + abs(abs(newleftEnc) - abs(oldleftEnc)))/4;
+     }
+
+    
+   /* 
+  Serial.print("old left encoder :");Serial.print(oldleftEnc);Serial.print("\t");Serial.print("old right encoder :");Serial.println(oldrightEnc);
+  Serial.print("new left encoder :");Serial.print(newleftEnc);Serial.print("\t");Serial.print("new right encoder :");Serial.println(newrightEnc);
+  
+  Serial.print("left differnce  :");Serial.print((newleftEnc - oldleftEnc));Serial.print("\t");Serial.print("left differnce  :");Serial.println((newrightEnc - oldrightEnc));
+  Serial.println("--------------");
+   */
+
+
+    ////////////////////////////////////
     Serial.println("/////*****************/////");
-    Serial.print("to go distance :"); Serial.println(p_goal);
-    Serial.print("traveled :"); Serial.println(traveled);
-    Serial.print("distance :"); Serial.println(distance);
+   
+    Serial.print("to go :"); Serial.println(toGo);
+    Serial.print("dp_min :"); Serial.println(dp_min);
+    Serial.print("speed :"); Serial.println(v_curr);
+     
     Serial.println("/////*****************/////");
     
     }
