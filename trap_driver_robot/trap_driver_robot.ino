@@ -38,8 +38,14 @@ float goForward(int sped){  /// to run the robot forward call this function
   long newrightEnc = rightEnc.read();
 
   //taking the average of two wheel encoder and then convert to distance in mm ; 1 tick = 0.5mm
-  float dist = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.4;
-
+  float dist = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.5;
+  Serial.print("old left encoder :");Serial.print(oldleftEnc);Serial.print("\t");Serial.print("old right encoder :");Serial.println(oldrightEnc);
+  Serial.print("new left encoder :");Serial.print(newleftEnc);Serial.print("\t");Serial.print("new right encoder :");Serial.println(newrightEnc);
+  
+  Serial.print("left differnce  :");Serial.print((newleftEnc - oldleftEnc));Serial.print("\t");Serial.print("left differnce  :");Serial.println((newrightEnc - oldrightEnc));
+  Serial.println("--------------");
+  Serial.print("total diffrance : ");Serial.println(dist);
+  Serial.println("--------------");
   return dist;
   
   }
@@ -102,7 +108,7 @@ void moveRobot(char head, int distance){  //get distance in cm
     toGo = p_goal - traveled;  // how far to go
  
     if(dp_min<toGo){
-      v_curr = min(v_max, v_curr+a_max*dt); //take the minimum of 
+      v_curr = min(v_max, v_curr+a_max*(dt-2)); //take the minimum of 
       
       // 1.5mm/ms speed for pwm 200, so coverstion is (200/1.5)*v_curr
       int spedd = 133*v_curr;
@@ -117,7 +123,7 @@ void moveRobot(char head, int distance){  //get distance in cm
 
     else{
 
-      v_curr  = v_curr - a_max*dt;
+      v_curr  = v_curr - a_max*(dt-2);
 
       int spedd = 133*v_curr;
       
@@ -131,9 +137,15 @@ void moveRobot(char head, int distance){  //get distance in cm
       } 
 
     traveled = traveled + diff;
+    Serial.println("/////*****************/////");
+    Serial.print("to go distance :"); Serial.println(p_goal);
+    Serial.print("traveled :"); Serial.println(traveled);
+    Serial.print("distance :"); Serial.println(distance);
+    Serial.println("/////*****************/////");
     
     }
     //stop motor after reaching the position
+   
     stopRobot();
     
     
@@ -240,18 +252,29 @@ void loop(){
 
     count++;
     received = true;
+   
   }
 
   if(received){
     
     
     if(msg[0] == 'f'){   //go forward
-      moveRobot(msg[0],msg[1]);
+    
+      int i, dist = 0;
+      for (i = 1; i < count; i++){
+          dist = 10 * dist + (msg[i]-'0');
+      }
+     moveRobot(msg[0],dist);
         
     }
 
     if(msg[0] == 'b'){  //go backward
-      moveRobot(msg[0],msg[1]);
+
+      int i, dist = 0;
+      for (i = 1; i < count; i++){
+          dist = 10 * dist + (msg[i]-'0');
+      }
+      moveRobot(msg[0],dist);
         
     }
 
@@ -264,13 +287,24 @@ void loop(){
       }
 
     if(msg[0] == 'l'){  //turn left by calling function with direction and angle
+
+      int i, angl = 0;
+      for (i = 1; i < count; i++){
+          angl = 10 * angl + (msg[i]-'0');
+      }
       
-      turnRobot(msg[1],msg[0]);
+      turnRobot(angl,msg[0]);
+      
       
       }
     if(msg[0] == 'r'){   //trun right by calling function with direction and angle
+
+      int i, angl = 0;
+      for (i = 1; i < count; i++){
+          angl = 10 * angl + (msg[i]-'0');
+      }
       
-      turnRobot(msg[1],msg[0]);
+      turnRobot(angl,msg[0]);
       
       }
   }
