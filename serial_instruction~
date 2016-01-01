@@ -1,0 +1,15 @@
+CONTROLLED MOVEMENT:
+
+		forward   ----->'f','distance in mm'
+		backward  ----->'b','distance in mm'
+		turn left ----->'l','angle in degree'
+		turn right----->'r','angle in degree'
+		stop  --------->'s'
+
+UNCONTROLLED MOVEMENT:
+
+		forward    ----->'w'
+		backward   ----->'z'
+		left turn  ----->'a'
+		right turn ----->'d'
+		stop   --------->'s'
