@@ -1,4 +1,5 @@
-#include <Encoder.h>   
+#include <Encoder.h>  
+#include <Servo.h> 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_PWMServoDriver.h"
@@ -6,6 +7,9 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); //i2c bus adress
 Encoder rightEnc(2, 5);  //reading right motor encoder pin RB-->2, RA-->5
 Encoder leftEnc(3, 6);   //reading left motor encoder pin  LA-->3,LB-->6
+
+Servo base;
+Servo head;
 
 bool received = false;
 
@@ -255,6 +259,9 @@ void setup() {
 
   Serial.begin(115200);
   Serial.flush();
+
+  base.attach(10); //servo1
+  head.attach(9);  //servo2
   
   AFMS.begin();
 
@@ -334,6 +341,18 @@ void loop(){
 
         case 'd':
         infDrive(msg[0]);
+        break;
+
+        case 'h':
+        head.write(val);
+        delay(15);
+        Serial.write('d');
+        break;
+
+        case 'g':
+        base.write(val);
+        delay(15);
+        Serial.write('d');
         break;
       
       
