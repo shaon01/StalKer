@@ -297,22 +297,22 @@ void loop(){
 
         case 'f':
         moveRobot(msg[0],val);
-        Serial.write('d');
+        Serial.print('d');
         break;
 
         case 'b':
         moveRobot(msg[0],val);
-        Serial.write('d');
+        Serial.print('d');
         break;
 
         case 'l':
         turnRobot(msg[0],val);
-        Serial.write('d');
+        Serial.print('d');
         break;
         
         case 'r':
         turnRobot(msg[0],val);
-        Serial.write('d');
+        Serial.print('d');
         break;
 
         case 's':
