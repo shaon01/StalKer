@@ -98,33 +98,28 @@ void moveRobot(char head, int distance){  //get distance in cm
      long newleftEnc = leftEnc.read();     //reading encoders
      long newrightEnc = rightEnc.read();
 
-     //convert average of encoder to mm. 1 tick = 0.25mm
-
      if (head == 'f'){
-        traveled = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.25;
+        traveled = (((newrightEnc - oldrightEnc) + (newleftEnc - oldleftEnc))/2)*0.25;    //convert average of encoder to mm. 1 tick = 0.25mm
      }
      else {
-        traveled = abs(abs(abs(newrightEnc) - abs(oldrightEnc)) + abs(abs(newleftEnc) - abs(oldleftEnc)))/4;
+        traveled = abs(abs(abs(newrightEnc) - abs(oldrightEnc)) + abs(abs(newleftEnc) - abs(oldleftEnc)))/4; ////convert average of encoder to mm. 1 tick = 0.25mm
      }
 
     
-   /* 
-  Serial.print("old left encoder :");Serial.print(oldleftEnc);Serial.print("\t");Serial.print("old right encoder :");Serial.println(oldrightEnc);
-  Serial.print("new left encoder :");Serial.print(newleftEnc);Serial.print("\t");Serial.print("new right encoder :");Serial.println(newrightEnc);
-  
-  Serial.print("left differnce  :");Serial.print((newleftEnc - oldleftEnc));Serial.print("\t");Serial.print("left differnce  :");Serial.println((newrightEnc - oldrightEnc));
-  Serial.println("--------------");
-   */
-
-
-    ////////////////////////////////////
-    Serial.println("/////*****************/////");
+   /*
+    Serial.print("old left encoder :");Serial.print(oldleftEnc);Serial.print("\t");Serial.print("old right encoder :");Serial.println(oldrightEnc);
+    Serial.print("new left encoder :");Serial.print(newleftEnc);Serial.print("\t");Serial.print("new right encoder :");Serial.println(newrightEnc);
+    
+    Serial.print("left differnce  :");Serial.print((newleftEnc - oldleftEnc));Serial.print("\t");Serial.print("left differnce  :");Serial.println((newrightEnc - oldrightEnc));
+    Serial.println("--------------");
+    
+    
    
     Serial.print("to go :"); Serial.println(toGo);
     Serial.print("dp_min :"); Serial.println(dp_min);
     Serial.print("speed :"); Serial.println(v_curr);
      
-    Serial.println("/////*****************/////");
+    Serial.println("/////*****************/////");*/
     
     }
     //stop motor after reaching the position
@@ -137,7 +132,7 @@ void moveRobot(char head, int distance){  //get distance in cm
   }
 
 
-void turnRobot(int dgre, char dir){
+void turnRobot(char dir, int dgre){
   
   long oldLenc =leftEnc.read();
   long oldRenc = rightEnc.read();
@@ -175,30 +170,15 @@ void turnRobot(int dgre, char dir){
 
     curr_diff = (abs(abs(abs(newLenc)-abs(oldLenc)) + abs(abs(newRenc)-abs(oldRenc))));
     /*
-    Serial.print("diff :");
-    Serial.println(diff);
-    Serial.print("curr_diff :");
-    Serial.println(curr_diff);
+    Serial.print("diff :");Serial.println(diff);
+    Serial.print("curr_diff :");Serial.println(curr_diff);
     
     Serial.println("**************");
     
-    Serial.print("old left :");
-    Serial.print(oldLenc);
-    Serial.print("\t");
-    Serial.print("old right :");
-    Serial.println(oldRenc);
-    
-    Serial.print("new left :");
-    Serial.print(newLenc);
-    Serial.print("\t");
-    Serial.print("new right :");
-    Serial.println(newRenc);
+    Serial.print("old left :");Serial.print(oldLenc);Serial.print("\t");Serial.print("old right :");Serial.println(oldRenc);
+    Serial.print("new left :");Serial.print(newLenc);Serial.print("\t");Serial.print("new right :");Serial.println(newRenc);
 
-    Serial.print("diff left :");
-    Serial.print(abs(abs(newLenc)-abs(oldLenc)));
-    Serial.print("\t");
-    Serial.print("diff right :");
-    Serial.println(abs(abs(newRenc)-abs(oldRenc)));
+    Serial.print("diff left :");Serial.print(abs(abs(newLenc)-abs(oldLenc)));Serial.print("\t");Serial.print("diff right :");Serial.println(abs(abs(newRenc)-abs(oldRenc)));
     Serial.println("*****************");
     */
     
@@ -226,7 +206,7 @@ void setup() {
 void loop(){
 
   byte msg[10];  //massage storing variable;
-  int count = 0;
+  int count = 0,val = 0;
   
   while (Serial.available() > 0) {
 
@@ -238,26 +218,29 @@ void loop(){
    
   }
 
+  if (count > 1){  ///converting byte to a integer
+    int i;
+      for (i = 1; i < count; i++){
+          val = 10 * val + (msg[i]-'0');
+          
+      }
+    
+    }
+ 
+  
   if(received){
     
     
     if(msg[0] == 'f'){   //go forward
     
-      int i, dist = 0;
-      for (i = 1; i < count; i++){
-          dist = 10 * dist + (msg[i]-'0');
-      }
-     moveRobot(msg[0],dist);
+      
+     moveRobot(msg[0],val);
         
     }
 
     if(msg[0] == 'b'){  //go backward
 
-      int i, dist = 0;
-      for (i = 1; i < count; i++){
-          dist = 10 * dist + (msg[i]-'0');
-      }
-      moveRobot(msg[0],dist);
+      moveRobot(msg[0],val);
         
     }
 
@@ -271,23 +254,14 @@ void loop(){
 
     if(msg[0] == 'l'){  //turn left by calling function with direction and angle
 
-      int i, angl = 0;
-      for (i = 1; i < count; i++){
-          angl = 10 * angl + (msg[i]-'0');
-      }
       
-      turnRobot(angl,msg[0]);
+      turnRobot(msg[0],val);
       
       
       }
     if(msg[0] == 'r'){   //trun right by calling function with direction and angle
 
-      int i, angl = 0;
-      for (i = 1; i < count; i++){
-          angl = 10 * angl + (msg[i]-'0');
-      }
-      
-      turnRobot(angl,msg[0]);
+      turnRobot(msg[0],val);
       
       }
   }
