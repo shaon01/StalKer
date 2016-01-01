@@ -13,6 +13,68 @@ float v_max = 1.0;  //maximum speed of robot in mm/ms   1.5mm/ms->200(pwm)
 float a_max = 0.01; //in mm/ms2
 int dt = 10;  //sampling time
 
+
+///////*******************************///////////
+//infinite driving function
+///////******************************////////////
+
+void infDrive(char drv){
+
+  Adafruit_DCMotor *leftWheel  = AFMS.getMotor(1);   //left motor
+  Adafruit_DCMotor *rightWheel = AFMS.getMotor(4);   //right motor
+
+  int frd = 40;
+  int trn = 20;
+
+
+  switch (drv){
+      
+
+        case 'w':    //go forward
+        
+        rightWheel -> setSpeed(frd);
+        leftWheel -> setSpeed(frd);
+        
+        leftWheel -> run(FORWARD);
+        rightWheel -> run(FORWARD);
+        break;
+
+        case 'z':     //go backward
+
+        rightWheel -> setSpeed(frd);
+        leftWheel -> setSpeed(frd);
+        
+        leftWheel -> run(BACKWARD);
+        rightWheel -> run(BACKWARD);
+        break;
+
+        case 'a':    //left turn
+
+        rightWheel -> setSpeed(trn);
+        leftWheel -> setSpeed(trn);
+        
+        leftWheel -> run(BACKWARD);
+        rightWheel -> run(FORWARD);
+        break;
+        
+        case 'd':     //right turn
+
+        rightWheel -> setSpeed(trn);
+        leftWheel -> setSpeed(trn);
+        
+        leftWheel -> run(FORWARD);
+        rightWheel -> run(BACKWARD);
+        break;
+
+        
+      
+  }
+
+  
+  
+  
+  }
+
 //////////****************************///////////////
 //Basic motor driving function
 ///////////////**********************///////////
@@ -229,41 +291,54 @@ void loop(){
  
   
   if(received){
-    
-    
-    if(msg[0] == 'f'){   //go forward
-    
+
+    switch (msg[0]){
       
-     moveRobot(msg[0],val);
+
+        case 'f':
+        moveRobot(msg[0],val);
+        Serial.write('d');
+        break;
+
+        case 'b':
+        moveRobot(msg[0],val);
+        Serial.write('d');
+        break;
+
+        case 'l':
+        turnRobot(msg[0],val);
+        Serial.write('d');
+        break;
         
-    }
+        case 'r':
+        turnRobot(msg[0],val);
+        Serial.write('d');
+        break;
 
-    if(msg[0] == 'b'){  //go backward
+        case 's':
+        stopRobot();
+        Serial.println("its stopped");
+        break;
 
-      moveRobot(msg[0],val);
-        
-    }
+        case 'w':
+        infDrive(msg[0]);
+        break;
 
-    if (msg[0] == 's'){  //stop robot
+        case 'z':
+        infDrive(msg[0]);
+        break;
 
-      stopRobot();
-      Serial.println("its stopped");
-  
+        case 'a':
+        infDrive(msg[0]);
+        break;
+
+        case 'd':
+        infDrive(msg[0]);
+        break;
+      
       
       }
-
-    if(msg[0] == 'l'){  //turn left by calling function with direction and angle
-
-      
-      turnRobot(msg[0],val);
-      
-      
-      }
-    if(msg[0] == 'r'){   //trun right by calling function with direction and angle
-
-      turnRobot(msg[0],val);
-      
-      }
+   
   }
 
       received =false;
